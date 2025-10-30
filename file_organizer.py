@@ -1,5 +1,3 @@
-# FileOrganizerPro.py
-
 import os
 import shutil
 from pathlib import Path
@@ -8,6 +6,7 @@ from tkinter import filedialog, messagebox, ttk
 import hashlib
 import json
 import customtkinter as ctk
+
 
 # --------------------------
 # File Organizer Page (Integrated with DManager)
@@ -65,10 +64,22 @@ class FileOrganizerPage(ctk.CTkFrame):
             self.sources_listbox.insert(tk.END, folder_path)
 
     def add_file(self, file_path):
-        file_path = str(Path(file_path).resolve())
-        if file_path not in self.sources:
-            self.sources.append(file_path)
-            self.sources_listbox.insert(tk.END, file_path)
+        # Handle both single and multiple selections
+        if isinstance(file_path, (list, tuple)):
+            file_paths = file_path
+        elif file_path:
+            file_paths = [file_path]
+        else:
+            return
+
+        for path in file_paths:
+            try:
+                path = str(Path(path).resolve())
+                if path not in self.sources:
+                    self.sources.append(path)
+                    self.sources_listbox.insert(tk.END, path)
+            except Exception as e:
+                print(f"Error adding file {path}: {e}")
 
     def remove_selected(self):
         selected = self.sources_listbox.curselection()
@@ -206,7 +217,7 @@ class FileOrganizerPage(ctk.CTkFrame):
         btn_frame = ctk.CTkFrame(self)
         btn_frame.pack(fill="x", padx=20, pady=5)
         ctk.CTkButton(btn_frame, text="Add Folder", command=lambda: self.add_folder(filedialog.askdirectory())).pack(side="left", padx=5)
-        ctk.CTkButton(btn_frame, text="Add File", command=lambda: self.add_file(filedialog.askopenfilename())).pack(side="left", padx=5)
+        ctk.CTkButton(btn_frame, text="Add File(s)", command=lambda: self.add_file(filedialog.askopenfilenames())).pack(side="left", padx=5)
         ctk.CTkButton(btn_frame, text="Remove Selected", command=self.remove_selected).pack(side="left", padx=5)
         ctk.CTkButton(btn_frame, text="Clear All", command=self.clear_sources).pack(side="left", padx=5)
         ctk.CTkButton(btn_frame, text="Detect Duplicates", command=self.show_duplicates).pack(side="left", padx=5)
